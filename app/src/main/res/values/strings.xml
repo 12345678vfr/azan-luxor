@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">مواقيت الأقصر</string>
+    <string name="app_subtitle">محافظة الأقصر - جمهورية مصر العربية</string>
+    <string name="fajr">الفجر</string>
+    <string name="sunrise">الشروق</string>
+    <string name="dhuhr">الظهر</string>
+    <string name="asr">العصر</string>
+    <string name="sunset">الغروب</string>
+    <string name="maghrib">المغرب</string>
+    <string name="isha">العشاء</string>
+
+    <string name="next_prayer_title">الصلاة القادمة</string>
+    <string name="remaining_time">متبقي</string>
+    <string name="prayer_now">حان الآن وقت أذان %s</string>
+    <string name="prayer_alarm_content">اقترب موعد صلاة %1$s (بعد %2$d دقيقة)</string>
+    <string name="prayer_exact_content">حان الآن موعد صلاة %s</string>
+
+    <string name="daylight_saving_title">نظام التوقيت</string>
+    <string name="summer_time">التوقيت الصيفي</string>
+    <string name="winter_time">التوقيت الشتوي</string>
+    <string name="time_mode_note">يبدأ التطبيق افتراضيًا بالتوقيت الصيفي، وعند اختيار التوقيت الشتوي يتم طرح ساعة (-60 دقيقة) من جميع المواعيد تلقائيًا.</string>
+
+    <string name="tab_today">الرئيسية</string>
+    <string name="tab_month">جدول الشهر</string>
+    <string name="tab_settings">الإعدادات</string>
+    <string name="tab_dhikr">الأذكار والقبلة</string>
+
+    <string name="notifications_title">إعدادات تنبيهات الصلوات</string>
+    <string name="enable_notifications">تفعيل التنبيهات</string>
+    <string name="alarm_offset_at_time">في موعد الصلاة بالضبط</string>
+    <string name="alarm_offset_mins">قبل الصلاة بـ %d دقيقة</string>
+
+    <string name="sound_settings_title">صوت التنبيه</string>
+    <string name="default_sound_adhan">صوت الأذان الافتراضي</string>
+    <string name="custom_sound">ملف صوتي من الهاتف</string>
+    <string name="choose_custom_sound">اختيار صوت من الهاتف</string>
+    <string name="test_sound_button">اختبار صوت التنبيه</string>
+    <string name="stop_sound_button">إيقاف الصوت</string>
+    <string name="grant_permission_hint">يرجى منح إذن الإشعارات لضمان وصول التنبيهات حتى عند إغلاق التطبيق</string>
+    <string name="grant_permission_btn">منح إذن الإشعارات</string>
+</resources>
