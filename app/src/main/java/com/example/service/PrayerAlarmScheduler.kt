@@ -22,11 +22,16 @@ class PrayerAlarmScheduler(private val context: Context) {
 
         val timeMode = preferences.timeMode
         val now = Calendar.getInstance()
+        val currentMonth = now.get(Calendar.MONTH) + 1
         val currentDay = now.get(Calendar.DAY_OF_MONTH).coerceIn(1, 31)
 
-        val todayAdjusted = repository.getAdjustedDayPrayers(currentDay, timeMode)
-        val tomorrowDay = if (currentDay >= 31) 1 else currentDay + 1
-        val tomorrowAdjusted = repository.getAdjustedDayPrayers(tomorrowDay, timeMode)
+        val activeMonth = if (currentMonth == 11) 11 else 10
+        val todayAdjusted = repository.getAdjustedDayPrayers(activeMonth, currentDay, timeMode)
+
+        val tomorrowCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+        val tomorrowMonth = if (tomorrowCal.get(Calendar.MONTH) + 1 == 11) 11 else 10
+        val tomorrowDay = tomorrowCal.get(Calendar.DAY_OF_MONTH).coerceIn(1, 31)
+        val tomorrowAdjusted = repository.getAdjustedDayPrayers(tomorrowMonth, tomorrowDay, timeMode)
 
         for (prayerType in PrayerType.obligatoryPrayers) {
             val config = preferences.getAlarmConfig(prayerType)
@@ -41,7 +46,6 @@ class PrayerAlarmScheduler(private val context: Context) {
                 set(Calendar.MINUTE, todayItem.minute)
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
-                // Subtract user offset (e.g. 10 minutes before)
                 add(Calendar.MINUTE, -config.offsetMinutes)
             }
 

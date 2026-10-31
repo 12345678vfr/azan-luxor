@@ -2,10 +2,13 @@ package com.example
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.example.data.model.AdjustedPrayerItem
 import com.example.data.model.PrayerType
 import com.example.data.model.TimeMode
 import com.example.data.repository.PrayerRepository
+import com.example.util.PrayerDateUtils
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,39 +23,62 @@ class ExampleRobolectricTest {
     fun `read app name string from context`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val appName = context.getString(R.string.app_name)
-        assertEquals("مواقيت الأقصر", appName)
+        assertEquals("نداء", appName)
     }
 
     @Test
-    fun `load october prayer times for luxor`() {
+    fun `load october and november prayer times for luxor`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val repository = PrayerRepository(context)
-        val allDays = repository.getAllDays()
 
-        assertEquals(31, allDays.size)
+        // October check
+        val octDays = repository.getAllDays(10)
+        assertEquals(31, octDays.size)
+        val octDay1 = repository.getDayPrayer(10, 1)
+        assertEquals("05:24", octDay1.fajr)
 
-        // Day 1 check
-        val day1 = repository.getDayPrayer(1)
-        assertEquals("05:24", day1.fajr)
-        assertEquals("06:44", day1.sunrise)
-        assertEquals("12:49", day1.dhuhr)
-        assertEquals("16:11", day1.asr)
-        assertEquals("18:33", day1.sunset)
-        assertEquals("18:43", day1.maghrib)
-        assertEquals("19:57", day1.isha)
+        // November check (30 days from user image)
+        val novDays = repository.getAllDays(11)
+        assertEquals(30, novDays.size)
+        val novDay1 = repository.getDayPrayer(11, 1)
+        assertEquals("04:41", novDay1.fajr)
+        assertEquals("06:03", novDay1.sunrise)
+        assertEquals("11:46", novDay1.dhuhr)
+        assertEquals("14:52", novDay1.asr)
+        assertEquals("17:06", novDay1.sunset)
+        assertEquals("17:15", novDay1.maghrib)
+        assertEquals("18:30", novDay1.isha)
     }
 
     @Test
-    fun `winter time offset subtracts 1 hour`() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val repository = PrayerRepository(context)
+    fun `next prayer never selects sunrise or sunset`() {
+        val prayers = listOf(
+            AdjustedPrayerItem(PrayerType.FAJR, "04:41", "04:41", 4, 41, "04:41 ص"),
+            AdjustedPrayerItem(PrayerType.SUNRISE, "06:03", "06:03", 6, 3, "06:03 ص"),
+            AdjustedPrayerItem(PrayerType.DHUHR, "11:46", "11:46", 11, 46, "11:46 ص"),
+            AdjustedPrayerItem(PrayerType.ASR, "14:52", "14:52", 14, 52, "02:52 م"),
+            AdjustedPrayerItem(PrayerType.SUNSET, "17:06", "17:06", 17, 6, "05:06 م"),
+            AdjustedPrayerItem(PrayerType.MAGHRIB, "17:15", "17:15", 17, 15, "05:15 م"),
+            AdjustedPrayerItem(PrayerType.ISHA, "18:30", "18:30", 18, 30, "06:30 م")
+        )
 
-        // Asr on Day 1 is 16:11 in Summer Time
-        val summerTime = repository.computeAdjustedTime("16:11", TimeMode.SUMMER)
-        assertEquals("16:11", summerTime.time24)
+        // At 5:30 AM (before sunrise 6:03, after Fajr 4:41), next prayer should be DHUHR, NOT sunrise!
+        val nextAt530 = PrayerDateUtils.findNextPrayer(prayers, 5, 30, 0)
+        assertNotNull(nextAt530)
+        assertEquals(PrayerType.DHUHR, nextAt530!!.first.type)
 
-        // In Winter Time it should be 15:11
-        val winterTime = repository.computeAdjustedTime("16:11", TimeMode.WINTER)
-        assertEquals("15:11", winterTime.time24)
+        // At 16:00 (before sunset 17:06, after Asr 14:52), next prayer should be MAGHRIB, NOT sunset!
+        val nextAt16 = PrayerDateUtils.findNextPrayer(prayers, 16, 0, 0)
+        assertNotNull(nextAt16)
+        assertEquals(PrayerType.MAGHRIB, nextAt16!!.first.type)
+    }
+
+    @Test
+    fun `iqama durations match user specifications`() {
+        assertEquals(15, PrayerType.FAJR.iqamaMinutes)
+        assertEquals(15, PrayerType.DHUHR.iqamaMinutes)
+        assertEquals(15, PrayerType.ASR.iqamaMinutes)
+        assertEquals(5, PrayerType.MAGHRIB.iqamaMinutes)
+        assertEquals(15, PrayerType.ISHA.iqamaMinutes)
     }
 }

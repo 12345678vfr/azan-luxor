@@ -34,6 +34,16 @@ enum class PrayerType(
             ISHA -> Icons.Default.NightsStay
         }
 
+    val iqamaMinutes: Int
+        get() = when (this) {
+            FAJR -> 15
+            DHUHR -> 15
+            ASR -> 15
+            MAGHRIB -> 5
+            ISHA -> 15
+            else -> 0
+        }
+
     companion object {
         fun fromId(id: String): PrayerType = entries.find { it.id.equals(id, ignoreCase = true) } ?: FAJR
         val obligatoryPrayers = listOf(FAJR, DHUHR, ASR, MAGHRIB, ISHA)
@@ -43,6 +53,22 @@ enum class PrayerType(
 enum class TimeMode(val displayName: String, val offsetMinutes: Int) {
     SUMMER("التوقيت الصيفي", 0),
     WINTER("التوقيت الشتوي", -60)
+}
+
+enum class AppThemePalette(
+    val id: String,
+    val title: String,
+    val description: String
+) {
+    EMERALD("emerald", "واحة الزمرد", "أخضر زمردي هادئ ومريح للعين"),
+    SAPPHIRE("sapphire", "سكون الليل", "أزرق كحلي ونيلي هادئ"),
+    AMBER_SAND("amber_sand", "رمال الأقصر", "كهرماني وبيج ترابي مريح"),
+    OLIVE("olive", "الزيتوني الوادع", "أخضر زيتي ناعم للأعصاب");
+
+    companion object {
+        fun fromId(id: String): AppThemePalette =
+            entries.find { it.id.equals(id, ignoreCase = true) } ?: EMERALD
+    }
 }
 
 data class RawDayPrayer(
@@ -78,6 +104,13 @@ data class AdjustedPrayerItem(
     val isCurrent: Boolean = false,
     val alarmEnabled: Boolean = false,
     val alarmOffsetMinutes: Int = 0
+)
+
+data class IqamaState(
+    val prayer: PrayerType,
+    val remainingSeconds: Long,
+    val formattedRemaining: String,
+    val totalIqamaMinutes: Int
 )
 
 data class PrayerAlarmConfig(

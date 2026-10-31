@@ -14,14 +14,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -32,14 +33,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.model.PrayerType
-import com.example.data.model.TimeMode
 import com.example.data.repository.PrayerRepository
 import com.example.ui.MainUiState
 import java.util.Calendar
@@ -48,11 +46,18 @@ import java.util.Calendar
 fun MonthScheduleScreen(
     uiState: MainUiState,
     repository: PrayerRepository,
+    onSelectMonth: (Int) -> Unit,
     onDayClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val currentCalendarDay = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+    val currentCalendar = Calendar.getInstance()
+    val currentCalMonth = currentCalendar.get(Calendar.MONTH) + 1
+    val currentCalDay = currentCalendar.get(Calendar.DAY_OF_MONTH)
     val horizontalScrollState = rememberScrollState()
+
+    val monthSchedule = repository.getMonthSchedule(uiState.selectedMonth)
+    val monthName = monthSchedule.monthName
+    val totalDays = monthSchedule.days.size
 
     Column(
         modifier = modifier
@@ -62,75 +67,139 @@ fun MonthScheduleScreen(
     ) {
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Screen Header Card
+        // Month Selector Bar (أكتوبر / نوفمبر)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            val isOct = uiState.selectedMonth == 10
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("tab_month_10")
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (isOct) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+                    )
+                    .border(
+                        width = if (isOct) 2.dp else 1.dp,
+                        color = if (isOct) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable { onSelectMonth(10) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "شهر أكتوبر (10)",
+                    fontWeight = if (isOct) FontWeight.Bold else FontWeight.Medium,
+                    color = if (isOct) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    fontSize = 13.sp
+                )
+            }
+
+            val isNov = uiState.selectedMonth == 11
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("tab_month_11")
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (isNov) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+                    )
+                    .border(
+                        width = if (isNov) 2.dp else 1.dp,
+                        color = if (isNov) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable { onSelectMonth(11) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "شهر نوفمبر (11)",
+                    fontWeight = if (isNov) FontWeight.Bold else FontWeight.Medium,
+                    color = if (isNov) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    fontSize = 13.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Fixed Responsive Header Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
             ),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(14.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Column {
                         Text(
-                            text = "جدول مواقيت الصلاة - شهر أكتوبر",
-                            style = MaterialTheme.typography.titleMedium.copy(
+                            text = "مواقيت شهر $monthName - الأقصر",
+                            style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "محافظة الأقصر • ${uiState.timeMode.displayName}",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        Text(
+                            text = uiState.timeMode.displayName,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontSize = 11.sp
+                            )
                         )
-                    )
+                    }
                 }
 
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.wrapContentWidth()
                 ) {
                     Text(
-                        text = "31 يومًا",
+                        text = "$totalDays يومًا",
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        maxLines = 1
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Table container with horizontal scroll
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(14.dp))
                 .border(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(14.dp)
                 )
                 .background(MaterialTheme.colorScheme.surface)
         ) {
@@ -146,7 +215,7 @@ fun MonthScheduleScreen(
                         .padding(vertical = 12.dp, horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TableHeaderCell("اليوم", width = 50.dp)
+                    TableHeaderCell("اليوم", width = 52.dp)
                     TableHeaderCell("الفجر", width = 64.dp)
                     TableHeaderCell("الشروق", width = 64.dp)
                     TableHeaderCell("الظهر", width = 64.dp)
@@ -161,21 +230,21 @@ fun MonthScheduleScreen(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(bottom = 12.dp)
                 ) {
-                    items(uiState.allMonthDays) { day ->
-                        val isToday = day.day == currentCalendarDay
-                        val isSelected = day.day == uiState.selectedDay
+                    items(monthSchedule.days) { day ->
+                        val isToday = (uiState.selectedMonth == currentCalMonth && day.day == currentCalDay)
+                        val isSelected = (day.day == uiState.selectedDay)
 
-                        val fajr = repository.computeAdjustedTime(day.fajr, uiState.timeMode).time24
-                        val sunrise = repository.computeAdjustedTime(day.sunrise, uiState.timeMode).time24
-                        val dhuhr = repository.computeAdjustedTime(day.dhuhr, uiState.timeMode).time24
-                        val asr = repository.computeAdjustedTime(day.asr, uiState.timeMode).time24
-                        val sunset = repository.computeAdjustedTime(day.sunset, uiState.timeMode).time24
-                        val maghrib = repository.computeAdjustedTime(day.maghrib, uiState.timeMode).time24
-                        val isha = repository.computeAdjustedTime(day.isha, uiState.timeMode).time24
+                        val fajr = repository.computeAdjustedTime(day.fajr, uiState.timeMode, monthSchedule.baseTimezone).time24
+                        val sunrise = repository.computeAdjustedTime(day.sunrise, uiState.timeMode, monthSchedule.baseTimezone).time24
+                        val dhuhr = repository.computeAdjustedTime(day.dhuhr, uiState.timeMode, monthSchedule.baseTimezone).time24
+                        val asr = repository.computeAdjustedTime(day.asr, uiState.timeMode, monthSchedule.baseTimezone).time24
+                        val sunset = repository.computeAdjustedTime(day.sunset, uiState.timeMode, monthSchedule.baseTimezone).time24
+                        val maghrib = repository.computeAdjustedTime(day.maghrib, uiState.timeMode, monthSchedule.baseTimezone).time24
+                        val isha = repository.computeAdjustedTime(day.isha, uiState.timeMode, monthSchedule.baseTimezone).time24
 
                         val rowBackground = when {
                             isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                            isToday -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)
+                            isToday -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
                             day.day % 2 == 0 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
                             else -> MaterialTheme.colorScheme.surface
                         }
@@ -190,7 +259,7 @@ fun MonthScheduleScreen(
                         ) {
                             TableCell(
                                 text = "${day.day}${if (isToday) " ★" else ""}",
-                                width = 50.dp,
+                                width = 52.dp,
                                 isHighlight = isToday || isSelected,
                                 isBold = true
                             )

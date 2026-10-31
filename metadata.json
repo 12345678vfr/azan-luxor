@@ -1,5 +1,5 @@
 {
-  "name": "مواقيت الأقصر",
+  "name": "نداء",
   "description": "تطبيق مواقيت الصلاة لمحافظة الأقصر - مصر، يعمل دون إنترنت مع تنبيهات مخصصة ودعم التوقيت الصيفي والشتوي.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

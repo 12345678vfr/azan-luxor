@@ -1,6 +1,10 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,25 +21,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Mosque
 import androidx.compose.material.icons.filled.NightsStay
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -59,18 +59,18 @@ import com.example.data.model.TimeMode
 import com.example.ui.MainUiState
 import com.example.ui.components.PrayerCard
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: MainUiState,
+    onSelectMonth: (Int) -> Unit,
     onSelectDay: (Int) -> Unit,
     onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val dayListState = rememberLazyListState()
 
-    // Scroll to selected day on initial load
-    LaunchedEffect(uiState.selectedDay) {
+    // Scroll to selected day on change
+    LaunchedEffect(uiState.selectedDay, uiState.selectedMonth) {
         val targetIndex = (uiState.selectedDay - 1).coerceAtLeast(0)
         dayListState.animateScrollToItem(targetIndex)
     }
@@ -80,14 +80,14 @@ fun HomeScreen(
             .fillMaxSize()
             .testTag("home_screen_content"),
         contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Hero Section with Image & Next Prayer Countdown
+        // Hero Section with Image & Next Prayer Countdown & Iqama Timer
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .height(290.dp)
             ) {
                 // Background Illustration
                 Image(
@@ -97,7 +97,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Dark gradient overlay for text readability
+                // Dark atmospheric gradient overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -106,7 +106,7 @@ fun HomeScreen(
                                 colors = listOf(
                                     Color(0x990A1A17),
                                     Color(0xCC0E2C26),
-                                    Color(0xEE0A1815)
+                                    Color(0xF00A1815)
                                 )
                             )
                         )
@@ -116,10 +116,10 @@ fun HomeScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Header Bar inside Hero
+                    // Header Bar inside Hero: App Name "نداء" & Location & Time Mode
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -130,13 +130,13 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.LocationOn,
+                                imageVector = Icons.Default.Mosque,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Text(
-                                text = "محافظة الأقصر",
+                                text = "نداء • محافظة الأقصر",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
@@ -148,9 +148,9 @@ fun HomeScreen(
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = if (uiState.timeMode == TimeMode.SUMMER)
-                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.85f)
+                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f)
                             else
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
                             modifier = Modifier
                                 .testTag("time_mode_badge")
                                 .clickable { onNavigateToSettings() }
@@ -179,11 +179,49 @@ fun HomeScreen(
                         }
                     }
 
-                    // Next Prayer & Live Countdown
+                    // Next Prayer & Live Countdown & Iqama Counter
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        // Iqama Banner (Shows between Adhan and Iqama)
+                        AnimatedVisibility(
+                            visible = uiState.iqamaState != null,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically()
+                        ) {
+                            uiState.iqamaState?.let { iqama ->
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier
+                                        .padding(bottom = 8.dp)
+                                        .testTag("iqama_countdown_badge")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.NotificationsActive,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSecondary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Text(
+                                            text = "متبقي على إقامة صلاة ${iqama.prayer.arabicName}:  ${iqama.formattedRemaining} دقيقة",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSecondary,
+                                                fontSize = 14.sp
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         if (uiState.nextPrayer != null) {
                             Text(
                                 text = "الصلاة القادمة: ${uiState.nextPrayer.type.arabicName}",
@@ -267,43 +305,73 @@ fun HomeScreen(
             }
         }
 
-        // Info notice if winter time
-        if (uiState.timeMode == TimeMode.WINTER) {
-            item {
-                Card(
+        // Month Selector Bar (أكتوبر / نوفمبر)
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // October Button
+                val isOct = uiState.selectedMonth == 10
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                        .weight(1f)
+                        .testTag("month_btn_10")
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            if (isOct) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+                        )
+                        .border(
+                            width = if (isOct) 2.dp else 1.dp,
+                            color = if (isOct) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .clickable { onSelectMonth(10) }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(20.dp)
+                    Text(
+                        text = "شهر أكتوبر (10)",
+                        fontWeight = if (isOct) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isOct) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp
+                    )
+                }
+
+                // November Button
+                val isNov = uiState.selectedMonth == 11
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("month_btn_11")
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            if (isNov) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
                         )
-                        Text(
-                            text = "تم تفعيل التوقيت الشتوي (تم طرح ساعة كاملة تلقائيًا من مواقيت شهر أكتوبر).",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                fontWeight = FontWeight.Medium
-                            )
+                        .border(
+                            width = if (isNov) 2.dp else 1.dp,
+                            color = if (isNov) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(12.dp)
                         )
-                    }
+                        .clickable { onSelectMonth(11) }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "شهر نوفمبر (11)",
+                        fontWeight = if (isNov) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isNov) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp
+                    )
                 }
             }
         }
 
-        // Days of Month Selector (1..31)
+        // Days of Month Selector (1..30 or 1..31)
         item {
+            val monthLabel = if (uiState.selectedMonth == 11) "نوفمبر" else "أكتوبر"
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
@@ -313,7 +381,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "مواقيت شهر أكتوبر - يوم ${uiState.selectedDay}",
+                        text = "مواقيت شهر $monthLabel - يوم ${uiState.selectedDay}",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -327,8 +395,11 @@ fun HomeScreen(
                             modifier = Modifier
                                 .testTag("today_quick_btn")
                                 .clickable {
-                                    val today = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH)
-                                    onSelectDay(today)
+                                    val now = java.util.Calendar.getInstance()
+                                    val curMonth = (now.get(java.util.Calendar.MONTH) + 1).let { if (it == 11) 11 else 10 }
+                                    val curDay = now.get(java.util.Calendar.DAY_OF_MONTH)
+                                    onSelectMonth(curMonth)
+                                    onSelectDay(curDay)
                                 }
                         ) {
                             Text(
@@ -344,6 +415,10 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
+                val curCal = java.util.Calendar.getInstance()
+                val curCalMonth = curCal.get(java.util.Calendar.MONTH) + 1
+                val curCalDay = curCal.get(java.util.Calendar.DAY_OF_MONTH)
+
                 LazyRow(
                     state = dayListState,
                     contentPadding = PaddingValues(horizontal = 16.dp),
@@ -351,7 +426,7 @@ fun HomeScreen(
                 ) {
                     items(uiState.allMonthDays) { dayItem ->
                         val isSelected = dayItem.day == uiState.selectedDay
-                        val isCurrentCalendarDay = dayItem.day == java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH)
+                        val isCurrentCalendarDay = (uiState.selectedMonth == curCalMonth && dayItem.day == curCalDay)
 
                         Box(
                             modifier = Modifier
@@ -408,7 +483,7 @@ fun HomeScreen(
         // Section Title: Daily Prayer Times
         item {
             Text(
-                text = "مواعيد الصلاة",
+                text = "مواعيد الصلاة واليوم",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -416,7 +491,7 @@ fun HomeScreen(
             )
         }
 
-        // 7 Prayer Cards
+        // Prayer Cards list
         items(uiState.dayPrayers) { prayerItem ->
             Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                 PrayerCard(item = prayerItem)

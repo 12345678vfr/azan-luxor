@@ -33,11 +33,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Mosque
 import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Stop
@@ -47,7 +47,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -68,9 +67,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.data.model.AppThemePalette
 import com.example.data.model.PrayerAlarmConfig
 import com.example.data.model.PrayerType
 import com.example.data.model.TimeMode
@@ -80,6 +81,7 @@ import com.example.ui.MainUiState
 fun SettingsScreen(
     uiState: MainUiState,
     onTimeModeChange: (TimeMode) -> Unit,
+    onThemePaletteChange: (AppThemePalette) -> Unit,
     onAlarmConfigChange: (PrayerType, Boolean, Int) -> Unit,
     onSetCustomSound: (String, String?) -> Unit,
     onSetDefaultSound: () -> Unit,
@@ -107,7 +109,6 @@ fun SettingsScreen(
         hasNotificationPermission = isGranted
     }
 
-    // Audio file picker launcher
     val audioPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -119,7 +120,7 @@ fun SettingsScreen(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
             } catch (e: Exception) {
-                // If persistable permission fails, keep uri string
+                // Keep uri
             }
             onSetCustomSound(uri.toString(), fileName)
         }
@@ -185,7 +186,112 @@ fun SettingsScreen(
             }
         }
 
-        // Section 1: Daylight Saving / Standard Time
+        // Section 1: Themes (ألوان وثيمات التطبيق الهادئة)
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("theme_selection_card"),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ColorLens,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "مظهر وثيم التطبيق (ألوان هادئة للعين)",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+
+                    Text(
+                        text = "اختر السمة اللونية المريحة لك؛ جميع الثيمات مصممة بألوان هادئة ومريحة للنفس ووضع القراءة.",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+
+                    // Theme selector items
+                    AppThemePalette.entries.forEach { palette ->
+                        val isSelected = uiState.appPalette == palette
+                        val swatchColor = when (palette) {
+                            AppThemePalette.EMERALD -> Color(0xFF135A52)
+                            AppThemePalette.SAPPHIRE -> Color(0xFF1E3A8A)
+                            AppThemePalette.AMBER_SAND -> Color(0xFF854D0E)
+                            AppThemePalette.OLIVE -> Color(0xFF3F6212)
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                )
+                                .border(
+                                    width = if (isSelected) 1.5.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .clickable { onThemePaletteChange(palette) }
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(swatchColor)
+                                )
+                                Column {
+                                    Text(
+                                        text = palette.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = palette.description,
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "محدد",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Section 2: Daylight Saving / Winter Time
         item {
             Card(
                 modifier = Modifier
@@ -217,7 +323,7 @@ fun SettingsScreen(
                     }
 
                     Text(
-                        text = "يبدأ التطبيق افتراضيًا بالتوقيت الصيفي. عند اختيار التوقيت الشتوي، يتم طرح ساعة (-60 دقيقة) من جميع المواعيد تلقائيًا وتحديث كافة التنبيهات دون المساس بالبيانات الأصلية.",
+                        text = "يبدأ التطبيق افتراضيًا بالتوقيت الشتوي لمحافظة الأقصر، وعند اختيار التوقيت الصيفي يتم تطبيق فرق الساعة وتحديث جميع التنبيهات تلقائيًا.",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -226,7 +332,6 @@ fun SettingsScreen(
                     val isSummer = uiState.timeMode == TimeMode.SUMMER
                     val isWinter = uiState.timeMode == TimeMode.WINTER
 
-                    // Two Big Toggle Buttons
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -263,11 +368,6 @@ fun SettingsScreen(
                                     fontSize = 15.sp,
                                     color = if (isSummer) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                 )
-                                Text(
-                                    text = "الوضع الافتراضي",
-                                    fontSize = 11.sp,
-                                    color = if (isSummer) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
                             }
                         }
 
@@ -303,50 +403,14 @@ fun SettingsScreen(
                                     fontSize = 15.sp,
                                     color = if (isWinter) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurface
                                 )
-                                Text(
-                                    text = "طرح ساعة (-60 د)",
-                                    fontSize = 11.sp,
-                                    color = if (isWinter) MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
                             }
-                        }
-                    }
-
-                    // Practical example
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Text(
-                                text = if (isSummer)
-                                    "مثال: العصر 16:10 (صيفي) • التنبيهات مبرمجة على التوقيت الصيفي"
-                                else
-                                    "مثال: العصر 15:10 (شتوي) • تم طرح 60 دقيقة وتحديث كافة التنبيهات",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            )
                         }
                     }
                 }
             }
         }
 
-        // Section 2: Sound Settings & Audio Test
+        // Section 3: Sound Settings & Audio Test
         item {
             Card(
                 modifier = Modifier
@@ -377,7 +441,7 @@ fun SettingsScreen(
                         )
                     }
 
-                    // Option 1: Default Adhan
+                    // Option 1: Default Madinah Adhan
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -392,12 +456,12 @@ fun SettingsScreen(
                         )
                         Column(modifier = Modifier.padding(start = 4.dp)) {
                             Text(
-                                text = "صوت الأذان الافتراضي",
+                                text = "أذان المدينة المنورة الافتراضي",
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
-                                text = "نغمة أذان هادئة مدمجة داخل التطبيق (يعمل دون إنترنت)",
+                                text = "صوت أذان الحرم المدني الشريف بجودة نقية ومدمج داخل التطبيق",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -432,7 +496,7 @@ fun SettingsScreen(
                                 text = if (uiState.soundConfig.isCustom && !uiState.soundConfig.customFileName.isNullOrEmpty())
                                     "الملف المحدد: ${uiState.soundConfig.customFileName}"
                                 else
-                                    "يمكنك اختيار ملف أذان أو صوت مسجل من ملفات هاتفك",
+                                    "يمكنك اختيار ملف صوتي أو أذان مسجل من ذاكرة هاتفك",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = if (uiState.soundConfig.isCustom) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = if (uiState.soundConfig.isCustom) FontWeight.Bold else FontWeight.Normal
@@ -474,7 +538,7 @@ fun SettingsScreen(
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
-                                text = if (uiState.isTestingSound) "جاري تشغيل الصوت الآن..." else "استمع لتجربة الصوت ومستوى العلو",
+                                text = if (uiState.isTestingSound) "جاري تشغيل الأذان الآن..." else "استمع لتجربة الأذان ومستوى الصوت",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -501,7 +565,7 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (uiState.isTestingSound) "إيقاف" else "اختبار الصوت",
+                                text = if (uiState.isTestingSound) "إيقاف" else "تشغيل الأذان",
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
                             )
@@ -511,7 +575,7 @@ fun SettingsScreen(
             }
         }
 
-        // Section 3: Independent Alert Settings for the 5 Prayers
+        // Section 4: Alert Settings for ONLY the 5 Obligatory Prayers
         item {
             Text(
                 text = "إعدادات تنبيهات الصلوات الخمس",
@@ -532,6 +596,61 @@ fun SettingsScreen(
                     onAlarmConfigChange(prayer, enabled, offset)
                 }
             )
+        }
+
+        // Section 5: App Version & About
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("app_version_card"),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mosque,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Text(
+                        text = "تطبيق نداء",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Text(
+                        text = "مواقيت الصلاة لمحافظة الأقصر - مصر",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Text(
+                            text = "الإصدار 1.0 (Version 1.0)",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }

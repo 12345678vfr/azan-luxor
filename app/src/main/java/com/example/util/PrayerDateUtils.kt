@@ -2,12 +2,10 @@ package com.example.util
 
 import android.os.Build
 import com.example.data.model.AdjustedPrayerItem
+import com.example.data.model.IqamaState
 import com.example.data.model.PrayerType
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.chrono.HijrahChronology
-import java.time.chrono.HijrahDate
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 
@@ -87,8 +85,7 @@ object PrayerDateUtils {
     }
 
     private fun fallbackHijri(calendar: Calendar): String {
-        // Fallback approximation
-        return "ربيع الآخر ١٤٤٨ هـ"
+        return "جمادى الأولى ١٤٤٨ هـ"
     }
 
     fun formatSecondsToCountdown(seconds: Long): String {
@@ -100,9 +97,16 @@ object PrayerDateUtils {
         return String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, secs)
     }
 
+    fun formatSecondsToMinutesSeconds(seconds: Long): String {
+        if (seconds <= 0) return "00:00"
+        val minutes = seconds / 60
+        val secs = seconds % 60
+        return String.format(Locale.US, "%02d:%02d", minutes, secs)
+    }
+
     /**
-     * Finds the next upcoming prayer from today's list given the current hour and minute.
-     * Returns a pair of (NextPrayerItem, remainingSeconds) or null if all passed today.
+     * Finds the next upcoming obligatory prayer from today's list given the current hour, minute, second.
+     * Excludes Sunrise (الشروق) and Sunset (الغروب) completely as they are not prayers.
      */
     fun findNextPrayer(
         todayPrayers: List<AdjustedPrayerItem>,
@@ -112,12 +116,45 @@ object PrayerDateUtils {
     ): Pair<AdjustedPrayerItem, Long>? {
         val currentTotalSeconds = currentHour * 3600L + currentMinute * 60L + currentSecond
 
-        // Filter obligatory prayers or all prayer events
         for (item in todayPrayers) {
+            // Only the 5 obligatory prayers (Fajr, Dhuhr, Asr, Maghrib, Isha)
+            if (!item.type.isObligatory) continue
+
             val prayerTotalSeconds = item.hour24 * 3600L + item.minute * 60L
             if (prayerTotalSeconds > currentTotalSeconds) {
                 val diff = prayerTotalSeconds - currentTotalSeconds
                 return Pair(item, diff)
+            }
+        }
+        return null
+    }
+
+    /**
+     * Computes whether an Iqama countdown is active (between Adhan start and Iqama duration).
+     * Fajr: 15m, Dhuhr: 15m, Asr: 15m, Maghrib: 5m, Isha: 15m.
+     */
+    fun findActiveIqama(
+        todayPrayers: List<AdjustedPrayerItem>,
+        currentHour: Int,
+        currentMinute: Int,
+        currentSecond: Int
+    ): IqamaState? {
+        val currentTotalSeconds = currentHour * 3600L + currentMinute * 60L + currentSecond
+
+        for (item in todayPrayers) {
+            if (!item.type.isObligatory) continue
+            val prayerSeconds = item.hour24 * 3600L + item.minute * 60L
+            val iqamaWindowSeconds = item.type.iqamaMinutes * 60L
+            val iqamaEndSeconds = prayerSeconds + iqamaWindowSeconds
+
+            if (currentTotalSeconds >= prayerSeconds && currentTotalSeconds < iqamaEndSeconds) {
+                val remaining = iqamaEndSeconds - currentTotalSeconds
+                return IqamaState(
+                    prayer = item.type,
+                    remainingSeconds = remaining,
+                    formattedRemaining = formatSecondsToMinutesSeconds(remaining),
+                    totalIqamaMinutes = item.type.iqamaMinutes
+                )
             }
         }
         return null

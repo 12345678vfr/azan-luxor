@@ -69,7 +69,9 @@ class MainActivity : ComponentActivity() {
         val repository = PrayerRepository(this)
 
         setContent {
-            MyApplicationTheme {
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+            MyApplicationTheme(appPalette = uiState.appPalette) {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                     LuxorPrayerApp(
                         viewModel = viewModel,
@@ -217,6 +219,9 @@ fun LuxorPrayerApp(
                     ScreenTab.HOME -> {
                         HomeScreen(
                             uiState = uiState,
+                            onSelectMonth = { month ->
+                                viewModel.selectMonth(month)
+                            },
                             onSelectDay = { day ->
                                 viewModel.selectDay(day)
                             },
@@ -230,6 +235,9 @@ fun LuxorPrayerApp(
                         MonthScheduleScreen(
                             uiState = uiState,
                             repository = repository,
+                            onSelectMonth = { month ->
+                                viewModel.selectMonth(month)
+                            },
                             onDayClick = { day ->
                                 viewModel.selectDay(day)
                                 currentTab = ScreenTab.HOME
@@ -242,6 +250,9 @@ fun LuxorPrayerApp(
                             uiState = uiState,
                             onTimeModeChange = { mode ->
                                 viewModel.setTimeMode(mode)
+                            },
+                            onThemePaletteChange = { palette ->
+                                viewModel.setAppPalette(palette)
                             },
                             onAlarmConfigChange = { prayer, enabled, offset ->
                                 viewModel.updateAlarmConfig(prayer, enabled, offset)

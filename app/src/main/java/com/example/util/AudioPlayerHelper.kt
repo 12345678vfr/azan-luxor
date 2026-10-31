@@ -27,7 +27,7 @@ object AudioPlayerHelper {
                     prepare()
                 }
             } else {
-                MediaPlayer.create(context, R.raw.adhan_tone)?.apply {
+                MediaPlayer.create(context, R.raw.adhan_madinah)?.apply {
                     setAudioAttributes(
                         AudioAttributes.Builder()
                             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
@@ -51,7 +51,7 @@ object AudioPlayerHelper {
             e.printStackTrace()
             // Fallback to bundled sound
             try {
-                val fallback = MediaPlayer.create(context, R.raw.adhan_tone)
+                val fallback = MediaPlayer.create(context, R.raw.adhan_madinah)
                 activePlayer = fallback
                 fallback?.setOnCompletionListener {
                     stopSound()

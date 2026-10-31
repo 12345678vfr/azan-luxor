@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.AdjustedPrayerItem
+import com.example.data.model.AppThemePalette
+import com.example.data.model.IqamaState
 import com.example.data.model.PrayerAlarmConfig
 import com.example.data.model.PrayerType
 import com.example.data.model.RawDayPrayer
@@ -24,10 +26,13 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 data class MainUiState(
+    val selectedMonth: Int = 10,
     val selectedDay: Int = 1,
-    val timeMode: TimeMode = TimeMode.SUMMER,
+    val timeMode: TimeMode = TimeMode.WINTER,
+    val appPalette: AppThemePalette = AppThemePalette.EMERALD,
     val dayPrayers: List<AdjustedPrayerItem> = emptyList(),
     val nextPrayer: AdjustedPrayerItem? = null,
+    val iqamaState: IqamaState? = null,
     val remainingSeconds: Long = 0L,
     val remainingTimeFormatted: String = "00:00:00",
     val dayOfWeekArabic: String = "",
@@ -51,9 +56,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         val now = Calendar.getInstance()
-        val currentDay = now.get(Calendar.DAY_OF_MONTH).coerceIn(1, 31)
+        val currentMonth = (now.get(Calendar.MONTH) + 1).let { if (it == 11) 11 else 10 }
+        val maxDays = if (currentMonth == 11) 30 else 31
+        val currentDay = now.get(Calendar.DAY_OF_MONTH).coerceIn(1, maxDays)
+
         val initialTimeMode = preferences.timeMode
-        val allDays = repository.getAllDays()
+        val initialPalette = preferences.appTheme
+        val allDays = repository.getAllDays(currentMonth)
 
         val initialAlarmConfigs = PrayerType.obligatoryPrayers.associateWith {
             preferences.getAlarmConfig(it)
@@ -62,8 +71,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         _uiState.update {
             it.copy(
+                selectedMonth = currentMonth,
                 selectedDay = currentDay,
                 timeMode = initialTimeMode,
+                appPalette = initialPalette,
                 allMonthDays = allDays,
                 alarmConfigs = initialAlarmConfigs,
                 soundConfig = initialSound,
@@ -92,12 +103,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val currentHour = now.get(Calendar.HOUR_OF_DAY)
         val currentMinute = now.get(Calendar.MINUTE)
         val currentSecond = now.get(Calendar.SECOND)
-        val currentDay = now.get(Calendar.DAY_OF_MONTH).coerceIn(1, 31)
+
+        val currentCalMonth = (now.get(Calendar.MONTH) + 1).let { if (it == 11) 11 else 10 }
+        val maxDays = if (currentCalMonth == 11) 30 else 31
+        val currentCalDay = now.get(Calendar.DAY_OF_MONTH).coerceIn(1, maxDays)
 
         val state = _uiState.value
-        val todayAdjusted = repository.getAdjustedDayPrayers(currentDay, state.timeMode)
+        val todayAdjusted = repository.getAdjustedDayPrayers(currentCalMonth, currentCalDay, state.timeMode)
 
+        // Find next obligatory prayer (Fajr, Dhuhr, Asr, Maghrib, Isha)
         val nextPair = PrayerDateUtils.findNextPrayer(
+            todayAdjusted,
+            currentHour,
+            currentMinute,
+            currentSecond
+        )
+
+        // Find active Iqama if right now is within the prayer's iqama window
+        val activeIqama = PrayerDateUtils.findActiveIqama(
             todayAdjusted,
             currentHour,
             currentMinute,
@@ -112,8 +135,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             remainingSecs = nextPair.second
         } else {
             // After Isha: next prayer is tomorrow's Fajr
-            val tomorrowDay = if (currentDay >= 31) 1 else currentDay + 1
-            val tomorrowAdjusted = repository.getAdjustedDayPrayers(tomorrowDay, state.timeMode)
+            val (tomorrowMonth, tomorrowDay) = if (currentCalDay >= maxDays) {
+                val nextMonth = if (currentCalMonth == 10) 11 else 10
+                Pair(nextMonth, 1)
+            } else {
+                Pair(currentCalMonth, currentCalDay + 1)
+            }
+
+            val tomorrowAdjusted = repository.getAdjustedDayPrayers(tomorrowMonth, tomorrowDay, state.timeMode)
             val tomorrowFajr = tomorrowAdjusted.find { it.type == PrayerType.FAJR }
 
             if (tomorrowFajr != null) {
@@ -128,17 +157,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         // Highlight next prayer in current day prayers
+        val isViewingToday = (state.selectedMonth == currentCalMonth && state.selectedDay == currentCalDay)
         val updatedPrayers = state.dayPrayers.map { item ->
-            val isNext = (state.selectedDay == currentDay && nextPrayerItem?.type == item.type)
+            val isNext = (isViewingToday && nextPrayerItem?.type == item.type)
             val currentTotalSec = currentHour * 3600L + currentMinute * 60L + currentSecond
             val itemTotalSec = item.hour24 * 3600L + item.minute * 60L
-            val isPassed = (state.selectedDay < currentDay) || (state.selectedDay == currentDay && itemTotalSec <= currentTotalSec)
+            val isPassed = (state.selectedMonth < currentCalMonth) ||
+                    (state.selectedMonth == currentCalMonth && state.selectedDay < currentCalDay) ||
+                    (isViewingToday && itemTotalSec <= currentTotalSec)
             item.copy(isNext = isNext, isPassed = isPassed)
         }
 
         _uiState.update {
             it.copy(
                 nextPrayer = nextPrayerItem,
+                iqamaState = activeIqama,
                 remainingSeconds = remainingSecs,
                 remainingTimeFormatted = PrayerDateUtils.formatSecondsToCountdown(remainingSecs),
                 dayPrayers = updatedPrayers,
@@ -147,14 +180,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun selectDay(day: Int) {
-        val bounded = day.coerceIn(1, 31)
+    fun selectMonth(month: Int) {
+        val targetMonth = if (month == 11) 11 else 10
+        val maxDays = if (targetMonth == 11) 30 else 31
+        val newDay = _uiState.value.selectedDay.coerceIn(1, maxDays)
+        val allDays = repository.getAllDays(targetMonth)
+
         val now = Calendar.getInstance()
-        val currentDay = now.get(Calendar.DAY_OF_MONTH)
+        val currentCalMonth = now.get(Calendar.MONTH) + 1
+        val currentCalDay = now.get(Calendar.DAY_OF_MONTH)
+
+        _uiState.update {
+            it.copy(
+                selectedMonth = targetMonth,
+                selectedDay = newDay,
+                allMonthDays = allDays,
+                isTodayView = (targetMonth == currentCalMonth && newDay == currentCalDay)
+            )
+        }
+        refreshPrayerTimes()
+    }
+
+    fun selectDay(day: Int) {
+        val maxDays = if (_uiState.value.selectedMonth == 11) 30 else 31
+        val bounded = day.coerceIn(1, maxDays)
+        val now = Calendar.getInstance()
+        val currentCalMonth = now.get(Calendar.MONTH) + 1
+        val currentCalDay = now.get(Calendar.DAY_OF_MONTH)
+
         _uiState.update {
             it.copy(
                 selectedDay = bounded,
-                isTodayView = (bounded == currentDay)
+                isTodayView = (_uiState.value.selectedMonth == currentCalMonth && bounded == currentCalDay)
             )
         }
         refreshPrayerTimes()
@@ -165,6 +222,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(timeMode = mode) }
         refreshPrayerTimes()
         scheduler.scheduleAllPrayers()
+    }
+
+    fun setAppPalette(palette: AppThemePalette) {
+        preferences.appTheme = palette
+        _uiState.update { it.copy(appPalette = palette) }
     }
 
     fun updateAlarmConfig(prayer: PrayerType, enabled: Boolean, offsetMinutes: Int) {
@@ -203,7 +265,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun refreshPrayerTimes() {
         val state = _uiState.value
-        val rawAdjusted = repository.getAdjustedDayPrayers(state.selectedDay, state.timeMode)
+        val rawAdjusted = repository.getAdjustedDayPrayers(state.selectedMonth, state.selectedDay, state.timeMode)
 
         val mergedPrayers = rawAdjusted.map { item ->
             val alarm = state.alarmConfigs[item.type]

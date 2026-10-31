@@ -2,6 +2,7 @@ package com.example.data.preferences
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.data.model.AppThemePalette
 import com.example.data.model.PrayerAlarmConfig
 import com.example.data.model.PrayerType
 import com.example.data.model.SoundConfig
@@ -14,23 +15,30 @@ class PrayerPreferences(context: Context) {
 
     var timeMode: TimeMode
         get() {
-            val name = prefs.getString(KEY_TIME_MODE, TimeMode.SUMMER.name)
+            val name = prefs.getString(KEY_TIME_MODE, TimeMode.WINTER.name)
             return try {
-                TimeMode.valueOf(name ?: TimeMode.SUMMER.name)
+                TimeMode.valueOf(name ?: TimeMode.WINTER.name)
             } catch (e: Exception) {
-                TimeMode.SUMMER
+                TimeMode.WINTER
             }
         }
         set(value) {
             prefs.edit().putString(KEY_TIME_MODE, value.name).apply()
         }
 
+    var appTheme: AppThemePalette
+        get() {
+            val id = prefs.getString(KEY_APP_THEME, AppThemePalette.EMERALD.id) ?: AppThemePalette.EMERALD.id
+            return AppThemePalette.fromId(id)
+        }
+        set(value) {
+            prefs.edit().putString(KEY_APP_THEME, value.id).apply()
+        }
+
     fun getAlarmConfig(prayer: PrayerType): PrayerAlarmConfig {
         val enabledKey = "alarm_enabled_${prayer.id}"
         val offsetKey = "alarm_offset_${prayer.id}"
 
-        // User default example from prompt:
-        // Fajr: 10 min, Dhuhr: 5 min, Asr: 10 min, Maghrib: 10 min, Isha: 15 min
         val defaultOffset = when (prayer) {
             PrayerType.FAJR -> 10
             PrayerType.DHUHR -> 5
@@ -69,6 +77,7 @@ class PrayerPreferences(context: Context) {
 
     companion object {
         private const val KEY_TIME_MODE = "time_mode"
+        private const val KEY_APP_THEME = "app_theme_palette"
         private const val KEY_IS_CUSTOM_SOUND = "is_custom_sound"
         private const val KEY_CUSTOM_SOUND_URI = "custom_sound_uri"
         private const val KEY_CUSTOM_SOUND_NAME = "custom_sound_name"
