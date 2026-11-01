@@ -29,6 +29,9 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
 
         // Reschedule alarms for following occurrences
         PrayerAlarmScheduler(context).scheduleAllPrayers()
+
+        // Update home screen widgets immediately
+        com.example.widget.PrayerAppWidgetProvider.updateAllWidgets(context)
     }
 
     private fun showPrayerNotification(context: Context, prayerName: String, offsetMinutes: Int) {

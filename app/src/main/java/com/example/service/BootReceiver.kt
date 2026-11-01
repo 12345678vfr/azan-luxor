@@ -13,6 +13,7 @@ class BootReceiver : BroadcastReceiver() {
             action == Intent.ACTION_TIMEZONE_CHANGED
         ) {
             PrayerAlarmScheduler(context).scheduleAllPrayers()
+            com.example.widget.PrayerAppWidgetProvider.updateAllWidgets(context)
         }
     }
 }

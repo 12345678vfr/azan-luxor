@@ -277,6 +277,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         _uiState.update { it.copy(dayPrayers = mergedPrayers) }
         updateCountdown()
+        com.example.widget.PrayerAppWidgetProvider.updateAllWidgets(getApplication())
+    }
+
+    fun updateWidgets() {
+        com.example.widget.PrayerAppWidgetProvider.updateAllWidgets(getApplication())
     }
 
     override fun onCleared() {

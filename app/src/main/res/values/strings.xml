@@ -40,4 +40,7 @@
     <string name="stop_sound_button">إيقاف الصوت</string>
     <string name="grant_permission_hint">يرجى منح إذن الإشعارات لضمان وصول التنبيهات حتى عند إغلاق التطبيق</string>
     <string name="grant_permission_btn">منح إذن الإشعارات</string>
+    <string name="widget_name">ودجت الصلاة القادمة</string>
+    <string name="widget_description">يعرض الصلاة القادمة ووقتها والوقت المتبقي مباشرة على الشاشة الرئيسية</string>
+    <string name="add_widget_btn">إضافة الودجت للشاشة الرئيسية</string>
 </resources>

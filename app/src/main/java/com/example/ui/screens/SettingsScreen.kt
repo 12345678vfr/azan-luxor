@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -598,7 +599,254 @@ fun SettingsScreen(
             )
         }
 
-        // Section 5: App Version & About
+        // Section 5: Home Screen Widget (ودجت الشاشة الرئيسية)
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("home_screen_widget_card"),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "ودجت الشاشة الرئيسية (Home Screen Widget)",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+
+                    Text(
+                        text = "يعرض الصلاة القادمة ووقتها والوقت المتبقي مباشرةً على شاشة هاتفك الرئيسية دون الحاجة لفتح التطبيق.",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+
+                    // Widget Interactive Live Preview Card (Matching New Islamic Design with Iqama)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(min = 220.dp, max = 280.dp)
+                                .clip(RoundedCornerShape(22.dp))
+                                .border(1.5.dp, Color(0xFF2C5F51), RoundedCornerShape(22.dp))
+                                .background(
+                                    androidx.compose.ui.graphics.Brush.linearGradient(
+                                        colors = listOf(
+                                            Color(0xFF0F3329),
+                                            Color(0xFF0A241D),
+                                            Color(0xFF061914)
+                                        )
+                                    )
+                                )
+                                .padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Top Bar
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Mosque,
+                                        contentDescription = null,
+                                        tint = Color(0xFFE5B869),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = "نداء • الأقصر",
+                                        color = Color(0xFFE5B869),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Text(
+                                    text = "${uiState.selectedDay} ${if (uiState.selectedMonth == 11) "نوفمبر" else "أكتوبر"}",
+                                    color = Color(0xFF94A3B8),
+                                    fontSize = 11.sp
+                                )
+                            }
+
+                            // Center Prayer & Time
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = if (uiState.iqamaState != null) "🕌 جارية الآن" else "الصلاة القادمة",
+                                        color = if (uiState.iqamaState != null) Color(0xFFF59E0B) else Color(0xFF80B3A2),
+                                        fontSize = 11.sp
+                                    )
+                                    Text(
+                                        text = if (uiState.iqamaState != null)
+                                            "صلاة ${uiState.iqamaState?.prayer?.arabicName}"
+                                        else
+                                            "صلاة ${uiState.nextPrayer?.type?.arabicName ?: "المغرب"}",
+                                        color = Color.White,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        text = uiState.nextPrayer?.adjustedTime ?: "17:15",
+                                        color = Color.White,
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "موعد الأذان",
+                                        color = Color(0xFF80B3A2),
+                                        fontSize = 10.sp
+                                    )
+                                }
+                            }
+
+                            // Row 1: Adhan Countdown Pill
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFF174438),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2A6455)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "الوقت المتبقي للأذان:",
+                                        color = Color(0xFF80B3A2),
+                                        fontSize = 11.sp
+                                    )
+                                    val remainingText = if (uiState.remainingSeconds > 0) {
+                                        val hours = uiState.remainingSeconds / 3600
+                                        val mins = (uiState.remainingSeconds % 3600) / 60
+                                        if (hours > 0) "$hours س $mins د" else "$mins د"
+                                    } else {
+                                        "2 س 29 د"
+                                    }
+                                    Text(
+                                        text = remainingText,
+                                        color = Color(0xFF38D9A9),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+
+                            // Row 2: Iqama Countdown Pill (User Requested Feature)
+                            val isIqamaActive = uiState.iqamaState != null
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isIqamaActive) Color(0xFFD97706) else Color(0xFF174438),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    if (isIqamaActive) Color(0xFFFDE68A) else Color(0xFF2A6455)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (isIqamaActive) "⏳ باقي على الإقامة:" else "موعد الإقامة:",
+                                        color = if (isIqamaActive) Color.White else Color(0xFF80B3A2),
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isIqamaActive) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    val iqamaText = if (isIqamaActive) {
+                                        "${uiState.iqamaState?.formattedRemaining} د"
+                                    } else {
+                                        val next = uiState.nextPrayer
+                                        if (next != null) {
+                                            val tot = next.hour24 * 60 + next.minute + next.type.iqamaMinutes
+                                            val h = (tot / 60) % 24
+                                            val m = tot % 60
+                                            String.format(java.util.Locale.US, "%02d:%02d (بعد %d د)", h, m, next.type.iqamaMinutes)
+                                        } else {
+                                            "17:20 (بعد 5 د)"
+                                        }
+                                    }
+                                    Text(
+                                        text = iqamaText,
+                                        color = if (isIqamaActive) Color.White else Color(0xFFE5B869),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Add Widget Button
+                    Button(
+                        onClick = {
+                            val appWidgetManager = context.getSystemService(Context.APPWIDGET_SERVICE) as? android.appwidget.AppWidgetManager
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && appWidgetManager != null && appWidgetManager.isRequestPinAppWidgetSupported) {
+                                val myProvider = android.content.ComponentName(context, com.example.widget.PrayerAppWidgetProvider::class.java)
+                                appWidgetManager.requestPinAppWidget(myProvider, null, null)
+                            } else {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "اضغط مطولاً على الشاشة الرئيسية للهاتف واختر التطبيقات المصغرة (Widgets) ثم اختر «نداء»",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("add_widget_btn"),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(imageVector = Icons.Default.Schedule, contentDescription = null, tint = Color.White)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("إضافة الودجت للشاشة الرئيسية", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    Text(
+                        text = "💡 نصيحة: يمكنك أيضاً الضغط مطولاً على أي مساحة فارغة في شاشة هاتفك واختيار (Widgets / تطبيقات مصغرة) واختيار ودجت «نداء» بالحجم الذي يناسبك.",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                }
+            }
+        }
+
+        // Section 6: App Version & About
         item {
             Card(
                 modifier = Modifier

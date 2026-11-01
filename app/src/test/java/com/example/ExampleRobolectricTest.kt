@@ -81,4 +81,22 @@ class ExampleRobolectricTest {
         assertEquals(5, PrayerType.MAGHRIB.iqamaMinutes)
         assertEquals(15, PrayerType.ISHA.iqamaMinutes)
     }
+
+    @Test
+    fun `widget provider update executes without error and RemoteViews inflates successfully`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        com.example.widget.PrayerAppWidgetProvider.updateAllWidgets(context)
+
+        // Also test direct updateAppWidget call
+        val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(context)
+        com.example.widget.PrayerAppWidgetProvider.updateAppWidget(context, appWidgetManager, 101)
+
+        // Verify RemoteViews can actually be inflated into a real View hierarchy without RemoteViews action exceptions
+        val views = android.widget.RemoteViews(context.packageName, com.example.R.layout.widget_prayer_next)
+        views.setTextViewText(com.example.R.id.widget_prayer_name, "صلاة المغرب")
+        views.setViewVisibility(com.example.R.id.widget_iqama_container, android.view.View.VISIBLE)
+        views.setViewVisibility(com.example.R.id.widget_iqama_active_container, android.view.View.GONE)
+        val inflatedView = views.apply(context, null)
+        assertNotNull(inflatedView)
+    }
 }
