@@ -133,20 +133,35 @@
         android:paddingBottom="5dp"
         android:layoutDirection="rtl">
 
-        <!-- Countdown Value on the LEFT -->
-        <TextView
+        <!-- Live Second-by-Second Countdown Chronometer on the LEFT -->
+        <Chronometer
             android:id="@+id/widget_remaining_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:gravity="left|center_vertical"
-            android:text="2 س 29 د"
             android:textColor="#38D9A9"
             android:textSize="12sp"
             android:textStyle="bold"
             android:singleLine="true"
             android:includeFontPadding="false" />
+
+        <!-- Static Text on the LEFT when Adhan is called ("تم رفعه") -->
+        <TextView
+            android:id="@+id/widget_remaining_static"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:gravity="left|center_vertical"
+            android:text="تم رفعه"
+            android:textColor="#38D9A9"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:includeFontPadding="false"
+            android:visibility="gone" />
 
         <!-- Countdown Title on the RIGHT -->
         <TextView
@@ -228,15 +243,14 @@
         android:layoutDirection="rtl"
         android:visibility="gone">
 
-        <!-- Active Iqama Time on the LEFT -->
-        <TextView
+        <!-- Active Iqama Live Chronometer on the LEFT -->
+        <Chronometer
             android:id="@+id/widget_iqama_active_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:gravity="left|center_vertical"
-            android:text="12:45 د"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold"

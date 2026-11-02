@@ -6,9 +6,8 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
-import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.MainActivity
 import com.example.R
@@ -18,16 +17,29 @@ import com.example.util.AudioPlayerHelper
 class PrayerAlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        val prayerId = intent.getStringExtra(PrayerAlarmScheduler.EXTRA_PRAYER_ID) ?: "general"
         val prayerName = intent.getStringExtra(PrayerAlarmScheduler.EXTRA_PRAYER_NAME) ?: "الصلاة"
         val offsetMinutes = intent.getIntExtra(PrayerAlarmScheduler.EXTRA_OFFSET_MINUTES, 0)
 
+        // Strict Deduplication Guard: Ignore triggers for the same prayer within 5 minutes
+        val prefs = context.getSharedPreferences("luxor_alarm_dedup", Context.MODE_PRIVATE)
+        val dedupKey = "last_trigger_${prayerId}_$offsetMinutes"
+        val lastTriggerTime = prefs.getLong(dedupKey, 0L)
+        val now = System.currentTimeMillis()
+
+        if (now - lastTriggerTime < 5 * 60 * 1000L) {
+            Log.w("PrayerAlarmReceiver", "Duplicate alarm suppressed for $prayerId ($offsetMinutes min)")
+            return
+        }
+        prefs.edit().putLong(dedupKey, now).apply()
+
         showPrayerNotification(context, prayerName, offsetMinutes)
 
-        // Play the chosen prayer alarm audio
+        // Play the chosen prayer alarm audio (takbeer by default)
         val preferences = PrayerPreferences(context)
         AudioPlayerHelper.playSound(context, preferences.soundConfig)
 
-        // Reschedule alarms for following occurrences
+        // Reschedule alarms for subsequent days
         PrayerAlarmScheduler(context).scheduleAllPrayers()
 
         // Update home screen widgets immediately

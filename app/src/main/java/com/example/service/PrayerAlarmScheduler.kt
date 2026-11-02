@@ -49,8 +49,8 @@ class PrayerAlarmScheduler(private val context: Context) {
                 add(Calendar.MINUTE, -config.offsetMinutes)
             }
 
-            // If time already passed for today, schedule for tomorrow
-            val targetCal = if (alarmCal.timeInMillis <= now.timeInMillis) {
+            // If time already passed for today (or within the current minute), schedule for tomorrow
+            val targetCal = if (alarmCal.timeInMillis <= now.timeInMillis + 60_000L) {
                 val tomorrowItem = tomorrowAdjusted.find { it.type == prayerType } ?: todayItem
                 Calendar.getInstance().apply {
                     add(Calendar.DAY_OF_YEAR, 1)

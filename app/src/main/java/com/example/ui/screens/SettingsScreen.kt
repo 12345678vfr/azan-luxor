@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -86,6 +87,7 @@ fun SettingsScreen(
     onAlarmConfigChange: (PrayerType, Boolean, Int) -> Unit,
     onSetCustomSound: (String, String?) -> Unit,
     onSetDefaultSound: () -> Unit,
+    onSetSoundType: (String) -> Unit = {},
     onStartSoundTest: () -> Unit,
     onStopSoundTest: () -> Unit,
     modifier: Modifier = Modifier
@@ -442,27 +444,51 @@ fun SettingsScreen(
                         )
                     }
 
-                    // Option 1: Default Madinah Adhan
+                    // Option 1: Takbeer only (User requested default)
+                    val isTakbeerSelected = !uiState.soundConfig.isCustom &&
+                            (uiState.soundConfig.soundType == com.example.data.model.SoundConfig.SOUND_TYPE_TAKBEER || uiState.soundConfig.soundType.isEmpty())
+                    val isMadinahSelected = !uiState.soundConfig.isCustom &&
+                            uiState.soundConfig.soundType == com.example.data.model.SoundConfig.SOUND_TYPE_MADINAH
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { onSetDefaultSound() }
-                            .padding(vertical = 4.dp),
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                onSetSoundType(com.example.data.model.SoundConfig.SOUND_TYPE_TAKBEER)
+                            }
+                            .padding(vertical = 6.dp, horizontal = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
-                            selected = !uiState.soundConfig.isCustom,
-                            onClick = { onSetDefaultSound() }
+                            selected = isTakbeerSelected,
+                            onClick = { onSetSoundType(com.example.data.model.SoundConfig.SOUND_TYPE_TAKBEER) }
                         )
-                        Column(modifier = Modifier.padding(start = 4.dp)) {
+                        Column(modifier = Modifier.padding(start = 6.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "تكبير فقط (الافتراضي)",
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer
+                                ) {
+                                    Text(
+                                        text = "الموصى به",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
                             Text(
-                                text = "أذان المدينة المنورة الافتراضي",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "صوت أذان الحرم المدني الشريف بجودة نقية ومدمج داخل التطبيق",
+                                text = "الله أكبر الله أكبر.. صوت التكبير المرفق المبارك بنقاء عالٍ",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -470,15 +496,45 @@ fun SettingsScreen(
                         }
                     }
 
-                    // Option 2: Custom audio from device
+                    // Option 2: Madinah Adhan
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                onSetSoundType(com.example.data.model.SoundConfig.SOUND_TYPE_MADINAH)
+                            }
+                            .padding(vertical = 6.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = isMadinahSelected,
+                            onClick = { onSetSoundType(com.example.data.model.SoundConfig.SOUND_TYPE_MADINAH) }
+                        )
+                        Column(modifier = Modifier.padding(start = 6.dp)) {
+                            Text(
+                                text = "أذان المدينة المنورة كاملًا",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "صوت أذان الحرم النبوي الشريف كاملًا بصوت خاشع ومدمج",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                        }
+                    }
+
+                    // Option 3: Custom audio from device
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable {
                                 audioPickerLauncher.launch("audio/*")
                             }
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = 6.dp, horizontal = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
@@ -487,7 +543,7 @@ fun SettingsScreen(
                                 audioPickerLauncher.launch("audio/*")
                             }
                         )
-                        Column(modifier = Modifier.padding(start = 4.dp)) {
+                        Column(modifier = Modifier.padding(start = 6.dp)) {
                             Text(
                                 text = "اختيار ملف صوتي من الهاتف",
                                 fontWeight = FontWeight.Bold,
@@ -526,20 +582,22 @@ fun SettingsScreen(
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
-                    // Audio Test Button
+                    // Audio Test Button (Fixed Responsiveness & Single-line layout)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Text(
                                 text = "اختبار الصوت الحالي",
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
-                                text = if (uiState.isTestingSound) "جاري تشغيل الأذان الآن..." else "استمع لتجربة الأذان ومستوى الصوت",
+                                text = if (uiState.isTestingSound) "جاري تشغيل الصوت الآن..." else "استمع لتجربة الصوت ومستواه",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -557,18 +615,26 @@ fun SettingsScreen(
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (uiState.isTestingSound) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                             ),
-                            modifier = Modifier.testTag("test_sound_btn")
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                            modifier = Modifier
+                                .testTag("test_sound_btn")
+                                .defaultMinSize(minHeight = 44.dp)
                         ) {
                             Icon(
                                 imageVector = if (uiState.isTestingSound) Icons.Default.Stop else Icons.Default.PlayArrow,
                                 contentDescription = null,
-                                tint = Color.White
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (uiState.isTestingSound) "إيقاف" else "تشغيل الأذان",
+                                text = if (uiState.isTestingSound) "إيقاف" else "تشغيل الصوت",
                                 color = Color.White,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                     }

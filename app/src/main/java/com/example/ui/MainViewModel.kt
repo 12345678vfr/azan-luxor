@@ -239,16 +239,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         scheduler.scheduleAllPrayers()
     }
 
+    fun setSoundType(soundType: String) {
+        val newConfig = SoundConfig(soundType = soundType, isCustom = false, customUriString = null, customFileName = null)
+        preferences.soundConfig = newConfig
+        _uiState.update { it.copy(soundConfig = newConfig) }
+    }
+
     fun setCustomSound(uriString: String, fileName: String?) {
-        val newConfig = SoundConfig(isCustom = true, customUriString = uriString, customFileName = fileName)
+        val newConfig = SoundConfig(
+            soundType = SoundConfig.SOUND_TYPE_CUSTOM,
+            isCustom = true,
+            customUriString = uriString,
+            customFileName = fileName
+        )
         preferences.soundConfig = newConfig
         _uiState.update { it.copy(soundConfig = newConfig) }
     }
 
     fun setDefaultSound() {
-        val newConfig = SoundConfig(isCustom = false, customUriString = null, customFileName = null)
-        preferences.soundConfig = newConfig
-        _uiState.update { it.copy(soundConfig = newConfig) }
+        setSoundType(SoundConfig.SOUND_TYPE_TAKBEER)
     }
 
     fun startSoundTest() {

@@ -268,6 +268,9 @@ fun LuxorPrayerApp(
                             onSetDefaultSound = {
                                 viewModel.setDefaultSound()
                             },
+                            onSetSoundType = { soundType ->
+                                viewModel.setSoundType(soundType)
+                            },
                             onStartSoundTest = {
                                 viewModel.startSoundTest()
                             },

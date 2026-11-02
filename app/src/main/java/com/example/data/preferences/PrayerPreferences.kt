@@ -62,13 +62,15 @@ class PrayerPreferences(context: Context) {
 
     var soundConfig: SoundConfig
         get() {
+            val soundType = prefs.getString(KEY_SOUND_TYPE, SoundConfig.SOUND_TYPE_TAKBEER) ?: SoundConfig.SOUND_TYPE_TAKBEER
             val isCustom = prefs.getBoolean(KEY_IS_CUSTOM_SOUND, false)
             val uri = prefs.getString(KEY_CUSTOM_SOUND_URI, null)
             val name = prefs.getString(KEY_CUSTOM_SOUND_NAME, null)
-            return SoundConfig(isCustom, uri, name)
+            return SoundConfig(soundType, isCustom, uri, name)
         }
         set(value) {
             prefs.edit()
+                .putString(KEY_SOUND_TYPE, value.soundType)
                 .putBoolean(KEY_IS_CUSTOM_SOUND, value.isCustom)
                 .putString(KEY_CUSTOM_SOUND_URI, value.customUriString)
                 .putString(KEY_CUSTOM_SOUND_NAME, value.customFileName)
@@ -78,6 +80,7 @@ class PrayerPreferences(context: Context) {
     companion object {
         private const val KEY_TIME_MODE = "time_mode"
         private const val KEY_APP_THEME = "app_theme_palette"
+        private const val KEY_SOUND_TYPE = "sound_type"
         private const val KEY_IS_CUSTOM_SOUND = "is_custom_sound"
         private const val KEY_CUSTOM_SOUND_URI = "custom_sound_uri"
         private const val KEY_CUSTOM_SOUND_NAME = "custom_sound_name"

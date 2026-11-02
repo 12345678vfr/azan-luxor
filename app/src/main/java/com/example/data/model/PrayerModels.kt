@@ -120,7 +120,14 @@ data class PrayerAlarmConfig(
 )
 
 data class SoundConfig(
+    val soundType: String = SOUND_TYPE_TAKBEER,
     val isCustom: Boolean = false,
     val customUriString: String? = null,
     val customFileName: String? = null
-)
+) {
+    companion object {
+        const val SOUND_TYPE_TAKBEER = "takbeer"
+        const val SOUND_TYPE_MADINAH = "madinah"
+        const val SOUND_TYPE_CUSTOM = "custom"
+    }
+}
