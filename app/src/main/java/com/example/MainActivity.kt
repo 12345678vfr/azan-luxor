@@ -81,6 +81,11 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        com.example.widget.PrayerAppWidgetProvider.updateAllWidgets(this)
+    }
 }
 
 @Composable

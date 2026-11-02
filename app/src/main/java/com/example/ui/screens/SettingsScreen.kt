@@ -705,11 +705,11 @@ fun SettingsScreen(
                                     )
                                     Text(
                                         text = if (uiState.iqamaState != null)
-                                            "صلاة ${uiState.iqamaState?.prayer?.arabicName}"
+                                            uiState.iqamaState?.prayer?.arabicName ?: "المغرب"
                                         else
-                                            "صلاة ${uiState.nextPrayer?.type?.arabicName ?: "المغرب"}",
+                                            uiState.nextPrayer?.type?.arabicName ?: "المغرب",
                                         color = Color.White,
-                                        fontSize = 18.sp,
+                                        fontSize = 22.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -718,13 +718,8 @@ fun SettingsScreen(
                                     Text(
                                         text = uiState.nextPrayer?.adjustedTime ?: "17:15",
                                         color = Color.White,
-                                        fontSize = 24.sp,
+                                        fontSize = 25.sp,
                                         fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "موعد الأذان",
-                                        color = Color(0xFF80B3A2),
-                                        fontSize = 10.sp
                                     )
                                 }
                             }
@@ -742,7 +737,7 @@ fun SettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "الوقت المتبقي للأذان:",
+                                        text = "باقي للأذان:",
                                         color = Color(0xFF80B3A2),
                                         fontSize = 11.sp
                                     )
@@ -779,7 +774,7 @@ fun SettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = if (isIqamaActive) "⏳ باقي على الإقامة:" else "موعد الإقامة:",
+                                        text = if (isIqamaActive) "⏳ باقي للإقامة:" else "موعد الإقامة:",
                                         color = if (isIqamaActive) Color.White else Color(0xFF80B3A2),
                                         fontSize = 11.sp,
                                         fontWeight = if (isIqamaActive) FontWeight.Bold else FontWeight.Normal
@@ -789,12 +784,12 @@ fun SettingsScreen(
                                     } else {
                                         val next = uiState.nextPrayer
                                         if (next != null) {
-                                            val tot = next.hour24 * 60 + next.minute + next.type.iqamaMinutes
-                                            val h = (tot / 60) % 24
-                                            val m = tot % 60
-                                            String.format(java.util.Locale.US, "%02d:%02d (بعد %d د)", h, m, next.type.iqamaMinutes)
+                                             val tot = next.hour24 * 60 + next.minute + next.type.iqamaMinutes
+                                             val h = (tot / 60) % 24
+                                             val m = tot % 60
+                                             String.format(java.util.Locale.US, "%02d:%02d (%d د)", h, m, next.type.iqamaMinutes)
                                         } else {
-                                            "17:20 (بعد 5 د)"
+                                            "17:20 (5 د)"
                                         }
                                     }
                                     Text(
@@ -811,10 +806,16 @@ fun SettingsScreen(
                     // Add Widget Button
                     Button(
                         onClick = {
+                            com.example.widget.PrayerAppWidgetProvider.updateAllWidgets(context)
                             val appWidgetManager = context.getSystemService(Context.APPWIDGET_SERVICE) as? android.appwidget.AppWidgetManager
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && appWidgetManager != null && appWidgetManager.isRequestPinAppWidgetSupported) {
                                 val myProvider = android.content.ComponentName(context, com.example.widget.PrayerAppWidgetProvider::class.java)
                                 appWidgetManager.requestPinAppWidget(myProvider, null, null)
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "تم إرسال طلب إضافة الودجت للشاشة الرئيسية",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
                             } else {
                                 android.widget.Toast.makeText(
                                     context,

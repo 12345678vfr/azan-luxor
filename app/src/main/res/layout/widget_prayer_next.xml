@@ -5,224 +5,262 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/bg_widget_container"
-    android:paddingStart="14dp"
-    android:paddingTop="12dp"
-    android:paddingEnd="14dp"
-    android:paddingBottom="12dp"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:layoutDirection="rtl"
+    android:textDirection="rtl"
     android:gravity="center_vertical">
 
-    <!-- Top Header Bar: App Name & Location + Date -->
-    <LinearLayout
+    <!-- Top Header Bar: App Icon & Name (Right) | Date (Left) -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:layoutDirection="rtl">
 
-        <ImageView
-            android:id="@+id/widget_app_icon"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/ic_widget_crescent"
-            android:contentDescription="@null" />
-
-        <TextView
-            android:id="@+id/widget_app_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="6dp"
-            android:text="نداء • الأقصر"
-            android:textColor="#E5B869"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:includeFontPadding="false" />
-
+        <!-- Date on the far LEFT -->
         <TextView
             android:id="@+id/widget_date_chip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:gravity="left|center_vertical"
             android:text="نوفمبر"
             android:textColor="#94A3B8"
             android:textSize="11sp"
+            android:singleLine="true"
             android:includeFontPadding="false" />
 
-    </LinearLayout>
+        <!-- Crescent Icon on the far RIGHT -->
+        <ImageView
+            android:id="@+id/widget_app_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_widget_crescent"
+            android:contentDescription="@null" />
 
-    <!-- Main Section: Prayer Name & Large Adhan Time -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <!-- Prayer Name Column -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/widget_prayer_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="الصلاة القادمة"
-                android:textColor="#80B3A2"
-                android:textSize="11sp"
-                android:includeFontPadding="false" />
-
-            <TextView
-                android:id="@+id/widget_prayer_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="صلاة المغرب"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:includeFontPadding="false" />
-
-        </LinearLayout>
-
-        <!-- Prayer Time Column -->
-        <LinearLayout
+        <!-- App Name: To the left of crescent icon, to the right of date -->
+        <TextView
+            android:id="@+id/widget_app_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="end">
+            android:layout_toLeftOf="@id/widget_app_icon"
+            android:layout_toRightOf="@id/widget_date_chip"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="6dp"
+            android:layout_marginLeft="6dp"
+            android:gravity="right|center_vertical"
+            android:text="نداء • الأقصر"
+            android:textColor="#E5B869"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:includeFontPadding="false" />
 
-            <TextView
-                android:id="@+id/widget_prayer_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="17:15"
-                android:textColor="#FFFFFF"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:includeFontPadding="false" />
+    </RelativeLayout>
 
-            <TextView
-                android:id="@+id/widget_time_period"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="موعد الأذان"
-                android:textColor="#80B3A2"
-                android:textSize="10sp"
-                android:includeFontPadding="false" />
+    <!-- Subtitle: "الصلاة القادمة" / "صلاة الغد" / "🕌 جارية الآن" (Right Aligned) -->
+    <TextView
+        android:id="@+id/widget_prayer_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="right|center_vertical"
+        android:text="الصلاة القادمة"
+        android:textColor="#80B3A2"
+        android:textSize="11sp"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:includeFontPadding="false" />
 
-        </LinearLayout>
+    <!-- Main Prayer Row: Time on Left, Prayer Name on Right -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:layoutDirection="rtl">
 
-    </LinearLayout>
+        <!-- Prayer Time on the far LEFT -->
+        <TextView
+            android:id="@+id/widget_prayer_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:gravity="left|center_vertical"
+            android:text="18:30"
+            android:textColor="#FFFFFF"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:includeFontPadding="false" />
 
-    <!-- Row 1: Adhan Countdown Pill -->
-    <LinearLayout
+        <!-- Prayer Name on the far RIGHT -->
+        <TextView
+            android:id="@+id/widget_prayer_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/widget_prayer_time"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="8dp"
+            android:gravity="right|center_vertical"
+            android:text="العشاء"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:includeFontPadding="false" />
+
+    </RelativeLayout>
+
+    <!-- Row 1: Adhan Countdown Pill (Time on Left, Title on Right) -->
+    <RelativeLayout
         android:id="@+id/widget_countdown_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:background="@drawable/bg_widget_pill"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:paddingTop="5dp"
-        android:paddingEnd="10dp"
-        android:paddingBottom="5dp">
+        android:paddingBottom="5dp"
+        android:layoutDirection="rtl">
 
-        <TextView
-            android:id="@+id/widget_countdown_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="متبقي للأذان:"
-            android:textColor="#80B3A2"
-            android:textSize="11sp"
-            android:includeFontPadding="false" />
-
+        <!-- Countdown Value on the LEFT -->
         <TextView
             android:id="@+id/widget_remaining_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:gravity="left|center_vertical"
             android:text="2 س 29 د"
             android:textColor="#38D9A9"
             android:textSize="12sp"
             android:textStyle="bold"
+            android:singleLine="true"
             android:includeFontPadding="false" />
 
-    </LinearLayout>
+        <!-- Countdown Title on the RIGHT -->
+        <TextView
+            android:id="@+id/widget_countdown_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/widget_remaining_time"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="6dp"
+            android:gravity="right|center_vertical"
+            android:text="باقي للأذان:"
+            android:textColor="#80B3A2"
+            android:textSize="11sp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:includeFontPadding="false" />
 
-    <!-- Row 2 (Normal State): Upcoming Iqama Time -->
-    <LinearLayout
+    </RelativeLayout>
+
+    <!-- Row 2 (Normal State): Upcoming Iqama Time (Time on Left, Title on Right) -->
+    <RelativeLayout
         android:id="@+id/widget_iqama_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="4dp"
         android:background="@drawable/bg_widget_pill"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:paddingTop="5dp"
-        android:paddingEnd="10dp"
-        android:paddingBottom="5dp">
+        android:paddingBottom="5dp"
+        android:layoutDirection="rtl">
 
-        <TextView
-            android:id="@+id/widget_iqama_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="موعد الإقامة:"
-            android:textColor="#80B3A2"
-            android:textSize="11sp"
-            android:includeFontPadding="false" />
-
+        <!-- Iqama Time on the LEFT -->
         <TextView
             android:id="@+id/widget_iqama_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="17:20 (5 دقائق)"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:gravity="left|center_vertical"
+            android:text="17:20 (5 د)"
             android:textColor="#E5B869"
             android:textSize="11sp"
             android:textStyle="bold"
+            android:singleLine="true"
             android:includeFontPadding="false" />
 
-    </LinearLayout>
+        <!-- Iqama Title on the RIGHT -->
+        <TextView
+            android:id="@+id/widget_iqama_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/widget_iqama_time"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="6dp"
+            android:gravity="right|center_vertical"
+            android:text="موعد الإقامة:"
+            android:textColor="#80B3A2"
+            android:textSize="11sp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:includeFontPadding="false" />
 
-    <!-- Row 2 (Active State): Countdown to Iqama right after Adhan -->
-    <LinearLayout
+    </RelativeLayout>
+
+    <!-- Row 2 (Active State): Countdown to Iqama right after Adhan (Time on Left, Title on Right) -->
+    <RelativeLayout
         android:id="@+id/widget_iqama_active_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="4dp"
         android:background="@drawable/bg_widget_iqama_active"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:paddingTop="5dp"
-        android:paddingEnd="10dp"
         android:paddingBottom="5dp"
+        android:layoutDirection="rtl"
         android:visibility="gone">
 
-        <TextView
-            android:id="@+id/widget_iqama_active_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="⏳ باقي على الإقامة:"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:includeFontPadding="false" />
-
+        <!-- Active Iqama Time on the LEFT -->
         <TextView
             android:id="@+id/widget_iqama_active_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:gravity="left|center_vertical"
             android:text="12:45 د"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold"
+            android:singleLine="true"
             android:includeFontPadding="false" />
 
-    </LinearLayout>
+        <!-- Active Iqama Title on the RIGHT -->
+        <TextView
+            android:id="@+id/widget_iqama_active_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/widget_iqama_active_time"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="6dp"
+            android:gravity="right|center_vertical"
+            android:text="⏳ باقي للإقامة:"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:includeFontPadding="false" />
+
+    </RelativeLayout>
 
 </LinearLayout>

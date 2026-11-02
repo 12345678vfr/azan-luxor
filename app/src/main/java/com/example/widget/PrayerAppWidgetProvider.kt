@@ -96,13 +96,13 @@ class PrayerAppWidgetProvider : AppWidgetProvider() {
             if (activeIqama != null) {
                 // ACTIVE IQAMA STATE (Directly following the Adhan)
                 isIqamaActive = true
-                prayerLabel = "🕌 جارية الآن (بين الأذان والإقامة)"
-                prayerName = "صلاة ${activeIqama.prayer.arabicName}"
+                prayerLabel = "🕌 جارية الآن"
+                prayerName = activeIqama.prayer.arabicName
                 val currentPrayerItem = todayAdjusted.find { it.type == activeIqama.prayer }
                 prayerTimeFormatted = currentPrayerItem?.adjustedTime ?: "--:--"
-                countdownTitle = "حالة الأذان:"
-                remainingFormatted = "تم رفع الأذان"
-                iqamaTitle = "⏳ باقي على الإقامة:"
+                countdownTitle = "الأذان:"
+                remainingFormatted = "تم رفعه"
+                iqamaTitle = "⏳ باقي للإقامة:"
                 val mins = activeIqama.remainingSeconds / 60
                 val secs = activeIqama.remainingSeconds % 60
                 iqamaFormatted = String.format(Locale.US, "%02d:%02d د", mins, secs)
@@ -113,10 +113,10 @@ class PrayerAppWidgetProvider : AppWidgetProvider() {
                 val remainingSecs = nextPair.second
 
                 prayerLabel = "الصلاة القادمة"
-                prayerName = "صلاة ${nextPrayer.type.arabicName}"
+                prayerName = nextPrayer.type.arabicName
                 prayerTimeFormatted = nextPrayer.adjustedTime
 
-                countdownTitle = "الوقت المتبقي للأذان:"
+                countdownTitle = "باقي للأذان:"
                 val hours = remainingSecs / 3600
                 val minutes = (remainingSecs % 3600) / 60
                 remainingFormatted = if (hours > 0) {
@@ -131,7 +131,7 @@ class PrayerAppWidgetProvider : AppWidgetProvider() {
                 val iqamaMin = iqamaMinuteTotal % 60
                 val iqamaTimeStr = String.format(Locale.US, "%02d:%02d", iqamaHour, iqamaMin)
                 iqamaTitle = "موعد الإقامة:"
-                iqamaFormatted = "$iqamaTimeStr (بعد ${nextPrayer.type.iqamaMinutes} د)"
+                iqamaFormatted = "$iqamaTimeStr (${nextPrayer.type.iqamaMinutes} د)"
             } else {
                 // After Isha -> Tomorrow's Fajr
                 isIqamaActive = false
@@ -150,7 +150,7 @@ class PrayerAppWidgetProvider : AppWidgetProvider() {
 
                 if (tomorrowFajr != null) {
                     prayerLabel = "صلاة الغد"
-                    prayerName = "صلاة ${tomorrowFajr.type.arabicName}"
+                    prayerName = tomorrowFajr.type.arabicName
                     prayerTimeFormatted = tomorrowFajr.adjustedTime
                     val currentTotalSec = currentHour * 3600L + currentMinute * 60L + currentSecond
                     val tomorrowFajrTotalSec = (24 * 3600L) + (tomorrowFajr.hour24 * 3600L + tomorrowFajr.minute * 60L)
@@ -158,7 +158,7 @@ class PrayerAppWidgetProvider : AppWidgetProvider() {
                     val hours = remainingSecs / 3600
                     val minutes = (remainingSecs % 3600) / 60
 
-                    countdownTitle = "الوقت المتبقي للأذان:"
+                    countdownTitle = "باقي للأذان:"
                     remainingFormatted = if (hours > 0) {
                         "$hours س $minutes د"
                     } else {
@@ -170,14 +170,14 @@ class PrayerAppWidgetProvider : AppWidgetProvider() {
                     val iqamaMin = iqamaMinuteTotal % 60
                     val iqamaTimeStr = String.format(Locale.US, "%02d:%02d", iqamaHour, iqamaMin)
                     iqamaTitle = "موعد الإقامة:"
-                    iqamaFormatted = "$iqamaTimeStr (بعد ${tomorrowFajr.type.iqamaMinutes} د)"
+                    iqamaFormatted = "$iqamaTimeStr (${tomorrowFajr.type.iqamaMinutes} د)"
                 } else {
                     prayerLabel = "الصلاة القادمة"
                     prayerName = "الصلاة"
                     prayerTimeFormatted = "--:--"
-                    countdownTitle = "الوقت المتبقي:"
+                    countdownTitle = "باقي للأذان:"
                     remainingFormatted = "--"
-                    iqamaTitle = "الإقامة:"
+                    iqamaTitle = "موعد الإقامة:"
                     iqamaFormatted = "--"
                 }
             }
